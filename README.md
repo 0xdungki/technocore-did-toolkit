@@ -46,6 +46,7 @@ The suite checks deterministic DID derivation against the upstream signer, canon
 
 - [Indonesian quickstart](docs/quickstart-id.md)
 - [Protocol v0.7 troubleshooting](docs/protocol-v07-troubleshooting.md)
+- [Security and receipt verification checklist](docs/security-verification-checklist.md)
 
 ## Trust model
 
