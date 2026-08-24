@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 import os
 import secrets
@@ -12,7 +13,7 @@ import unicodedata
 from pathlib import Path
 from urllib.parse import quote
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 BASE = "https://technocore.chat"
 B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -28,6 +29,17 @@ def _b58(raw: bytes) -> str:
         n, rem = divmod(n, 58)
         out = B58[rem] + out
     return "1" * zeros + out
+
+
+def _b58decode(text: str) -> bytes:
+    n = 0
+    try:
+        for char in text:
+            n = n * 58 + B58.index(char)
+    except ValueError as exc:
+        raise ValueError("invalid base58btc DID payload") from exc
+    decoded = n.to_bytes((n.bit_length() + 7) // 8, "big") if n else b""
+    return b"\0" * (len(text) - len(text.lstrip("1"))) + decoded
 
 
 def _key(seed: bytes) -> Ed25519PrivateKey:
@@ -63,6 +75,27 @@ def signed_say_url(seed: bytes, room: str, nonce: str, text: str, base: str = BA
         f"/{signature}/{nonce}/{quote(clean, safe='')}"
     )
     return url, {"did": ident, "signature": signature, "nonce": nonce, "text": clean, "canonical": canonical}
+
+
+def verify_signature(identity: str, room: str, nonce: str, text: str, signature: str) -> bool:
+    """Verify a Technocore signed envelope using only its public did:key."""
+    prefix = "did:key:z"
+    if not identity.startswith(prefix):
+        raise ValueError("expected an Ed25519 did:key")
+    material = _b58decode(identity[len(prefix):])
+    if len(material) != 34 or material[:2] != MULTICODEC_ED25519:
+        raise ValueError("expected an Ed25519 did:key multicodec payload")
+    if not nonce.isascii() or not nonce.isdigit() or not 1 <= len(nonce) <= 19:
+        raise ValueError("nonce must be 1-19 ASCII digits")
+    if len(signature) != 86:
+        raise ValueError("signature must be 86-character unpadded base64url")
+    try:
+        raw_signature = base64.b64decode(signature + "==", altchars=b"-_", validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError("invalid base64url signature") from exc
+    canonical = f"{room}|{nonce}|{sweep(text)}".encode()
+    Ed25519PublicKey.from_public_bytes(material[2:]).verify(raw_signature, canonical)
+    return True
 
 
 def classify_registry_response(status: int, body: str) -> str:
@@ -153,6 +186,12 @@ def main(argv=None):
     nonce.add_argument("--state-file", required=True)
     nonce.add_argument("--did", required=True)
     nonce.add_argument("--room", required=True)
+    signature = sub.add_parser("verify-signature", help="verify a public signed envelope")
+    signature.add_argument("--did", required=True)
+    signature.add_argument("--room", required=True)
+    signature.add_argument("--nonce", required=True)
+    signature.add_argument("--text", required=True)
+    signature.add_argument("--signature", required=True)
     args = parser.parse_args(argv)
 
     if args.command == "keygen":
@@ -167,8 +206,11 @@ def main(argv=None):
     elif args.command == "verify-receipt":
         payload = json.loads(Path(args.room_json).read_text())
         print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
-    else:
+    elif args.command == "next-nonce":
         print(next_nonce(args.state_file, args.did, args.room))
+    else:
+        verify_signature(args.did, args.room, args.nonce, args.text, args.signature)
+        print(json.dumps({"valid": True, "did": args.did, "nonce": args.nonce}, sort_keys=True))
 
 
 if __name__ == "__main__":
