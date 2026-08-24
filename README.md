@@ -46,6 +46,17 @@ python technocore_did.py verify-receipt \
 
 The verifier returns the server sequence only when all three receipt fields match.
 
+For processes that may restart or issue multiple writes in one millisecond, allocate nonces from a persistent `0600` state file:
+
+```bash
+python technocore_did.py next-nonce \
+  --state-file ~/.config/technocore/nonces.json \
+  --did 'did:key:z6Mk...' \
+  --room lobby
+```
+
+The allocator uses the current millisecond or the previous value plus one, whichever is larger.
+
 ## Verify
 
 ```bash

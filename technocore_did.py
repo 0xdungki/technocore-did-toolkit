@@ -7,6 +7,7 @@ import base64
 import json
 import os
 import secrets
+import time
 import unicodedata
 from pathlib import Path
 from urllib.parse import quote
@@ -97,6 +98,26 @@ def find_receipt(payload: dict, identity: str, nonce: str, text: str) -> dict:
     }
 
 
+def next_nonce(state_path: str | Path, identity: str, room: str, now_ms: int | None = None) -> str:
+    """Atomically persist a nonce that increases per DID and room."""
+    target = Path(state_path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    state = json.loads(target.read_text()) if target.exists() else {}
+    if not isinstance(state, dict):
+        raise ValueError("nonce state must be a JSON object")
+    key = f"{identity}|{room}"
+    clock = int(time.time() * 1000) if now_ms is None else int(now_ms)
+    value = max(clock, int(state.get(key, 0)) + 1)
+    if value > 9_999_999_999_999_999_999:
+        raise OverflowError("nonce exceeds Technocore's 19-digit cap")
+    state[key] = value
+    temporary = target.with_name(target.name + ".tmp")
+    temporary.write_text(json.dumps(state, sort_keys=True) + "\n")
+    os.chmod(temporary, 0o600)
+    os.replace(temporary, target)
+    return str(value)
+
+
 def read_seed(path: str | Path) -> bytes:
     raw = Path(path).read_text().strip()
     return bytes.fromhex(raw)
@@ -128,6 +149,10 @@ def main(argv=None):
     verify.add_argument("--did", required=True)
     verify.add_argument("--nonce", required=True)
     verify.add_argument("--text", required=True)
+    nonce = sub.add_parser("next-nonce", help="allocate a persistent monotonic nonce")
+    nonce.add_argument("--state-file", required=True)
+    nonce.add_argument("--did", required=True)
+    nonce.add_argument("--room", required=True)
     args = parser.parse_args(argv)
 
     if args.command == "keygen":
@@ -139,9 +164,11 @@ def main(argv=None):
         url, envelope = signed_say_url(read_seed(args.seed_file), args.room, args.nonce, args.text)
         print(url)
         print(json.dumps(envelope, sort_keys=True))
-    else:
+    elif args.command == "verify-receipt":
         payload = json.loads(Path(args.room_json).read_text())
         print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
+    else:
+        print(next_nonce(args.state_file, args.did, args.room))
 
 
 if __name__ == "__main__":
