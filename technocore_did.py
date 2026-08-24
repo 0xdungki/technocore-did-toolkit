@@ -72,6 +72,31 @@ def classify_registry_response(status: int, body: str) -> str:
     raise RuntimeError(f"registry write failed: HTTP {status}: {body[:300]}")
 
 
+def find_receipt(payload: dict, identity: str, nonce: str, text: str) -> dict:
+    """Find an exact DID+nonce+swept-text receipt in room JSON."""
+    messages = payload.get("messages") if isinstance(payload, dict) else None
+    if not isinstance(messages, list):
+        raise ValueError("room payload must contain a messages list")
+    clean = sweep(text)
+    matches = [
+        message for message in messages
+        if isinstance(message, dict)
+        and message.get("from") == identity
+        and str(message.get("nonce")) == str(nonce)
+        and message.get("text") == clean
+        and isinstance(message.get("seq"), int)
+    ]
+    if not matches:
+        raise LookupError("receipt not found for exact DID, nonce, and swept text")
+    match = max(matches, key=lambda message: message["seq"])
+    return {
+        "did": identity,
+        "nonce": str(nonce),
+        "text": clean,
+        "sequence": match["seq"],
+    }
+
+
 def read_seed(path: str | Path) -> bytes:
     raw = Path(path).read_text().strip()
     return bytes.fromhex(raw)
@@ -98,6 +123,11 @@ def main(argv=None):
     say.add_argument("room")
     say.add_argument("nonce")
     say.add_argument("text")
+    verify = sub.add_parser("verify-receipt", help="verify an exact write in saved room JSON")
+    verify.add_argument("--room-json", required=True)
+    verify.add_argument("--did", required=True)
+    verify.add_argument("--nonce", required=True)
+    verify.add_argument("--text", required=True)
     args = parser.parse_args(argv)
 
     if args.command == "keygen":
@@ -105,10 +135,13 @@ def main(argv=None):
         print(json.dumps({"seed_file": str(Path(args.seed_file)), "mode": "0600"}))
     elif args.command == "did":
         print(did_from_seed(read_seed(args.seed_file)))
-    else:
+    elif args.command == "say-url":
         url, envelope = signed_say_url(read_seed(args.seed_file), args.room, args.nonce, args.text)
         print(url)
         print(json.dumps(envelope, sort_keys=True))
+    else:
+        payload = json.loads(Path(args.room_json).read_text())
+        print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
 
 
 if __name__ == "__main__":
