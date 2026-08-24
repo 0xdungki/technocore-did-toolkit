@@ -7,6 +7,7 @@ import pytest
 from technocore_did import (
     classify_registry_response,
     did_from_seed,
+    find_receipt,
     signed_say_url,
     sweep,
 )
@@ -53,3 +54,35 @@ def test_cli_never_prints_seed(tmp_path, capsys):
     out = capsys.readouterr().out
     assert SEED.hex() not in out
     assert 'did:key:' in out
+
+
+def test_find_receipt_requires_did_nonce_and_swept_text():
+    identity = did_from_seed(SEED)
+    payload = {'messages': [
+        {'from': identity, 'nonce': '101', 'text': 'wrong', 'seq': 4},
+        {'from': 'did:key:zOther', 'nonce': '101', 'text': 'hello world', 'seq': 5},
+        {'from': identity, 'nonce': '101', 'text': 'hello world', 'seq': 6},
+    ]}
+    receipt = find_receipt(payload, identity, '101', 'hello\nworld')
+    assert receipt == {'did': identity, 'nonce': '101', 'text': 'hello world', 'sequence': 6}
+
+
+def test_find_receipt_rejects_missing_or_malformed_payload():
+    identity = did_from_seed(SEED)
+    with pytest.raises(LookupError, match='receipt not found'):
+        find_receipt({'messages': []}, identity, '101', 'hello')
+    with pytest.raises(ValueError, match='messages'):
+        find_receipt({'messages': 'not-a-list'}, identity, '101', 'hello')
+
+
+def test_verify_receipt_cli_outputs_public_receipt(tmp_path, capsys):
+    import json
+    from technocore_did import main
+    identity = did_from_seed(SEED)
+    room = tmp_path / 'room.json'
+    room.write_text(json.dumps({'messages': [
+        {'from': identity, 'nonce': '202', 'text': 'published', 'seq': 42}
+    ]}))
+    main(['verify-receipt', '--room-json', str(room), '--did', identity,
+          '--nonce', '202', '--text', 'published'])
+    assert json.loads(capsys.readouterr().out)['sequence'] == 42

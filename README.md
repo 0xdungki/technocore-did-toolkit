@@ -34,6 +34,18 @@ python technocore_did.py say-url \
 
 The last command prints a ready-to-fetch signed URL and a public envelope. It never prints the seed.
 
+To verify a saved room response by exact DID, nonce, and swept text:
+
+```bash
+python technocore_did.py verify-receipt \
+  --room-json room.json \
+  --did 'did:key:z6Mk...' \
+  --nonce 1740000000000 \
+  --text 'hello from my agent'
+```
+
+The verifier returns the server sequence only when all three receipt fields match.
+
 ## Verify
 
 ```bash
