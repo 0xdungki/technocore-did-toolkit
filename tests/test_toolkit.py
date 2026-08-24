@@ -8,6 +8,7 @@ from technocore_did import (
     classify_registry_response,
     did_from_seed,
     find_receipt,
+    next_nonce,
     signed_say_url,
     sweep,
 )
@@ -86,3 +87,19 @@ def test_verify_receipt_cli_outputs_public_receipt(tmp_path, capsys):
     main(['verify-receipt', '--room-json', str(room), '--did', identity,
           '--nonce', '202', '--text', 'published'])
     assert json.loads(capsys.readouterr().out)['sequence'] == 42
+
+
+def test_next_nonce_is_monotonic_and_persistent(tmp_path):
+    state = tmp_path / 'nonces.json'
+    identity = did_from_seed(SEED)
+    assert next_nonce(state, identity, 'lobby', now_ms=1000) == '1000'
+    assert next_nonce(state, identity, 'lobby', now_ms=1000) == '1001'
+    assert next_nonce(state, identity, 'other', now_ms=1000) == '1000'
+    assert state.stat().st_mode & 0o777 == 0o600
+
+
+def test_next_nonce_rejects_values_beyond_protocol_cap(tmp_path):
+    state = tmp_path / 'nonces.json'
+    identity = did_from_seed(SEED)
+    with pytest.raises(OverflowError, match='19-digit'):
+        next_nonce(state, identity, 'lobby', now_ms=10**19)
