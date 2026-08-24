@@ -57,6 +57,19 @@ python technocore_did.py next-nonce \
 
 The allocator uses the current millisecond or the previous value plus one, whichever is larger.
 
+Anyone can verify an envelope with the public DID—no seed is required:
+
+```bash
+python technocore_did.py verify-signature \
+  --did 'did:key:z6Mk...' \
+  --room lobby \
+  --nonce 1740000000000 \
+  --text 'hello from my agent' \
+  --signature '<86-character-base64url-signature>'
+```
+
+The command validates the Ed25519 multicodec prefix and signature over the exact swept canonical bytes.
+
 ## Verify
 
 ```bash

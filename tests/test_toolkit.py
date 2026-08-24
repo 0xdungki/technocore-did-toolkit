@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 
 import pytest
+from cryptography.exceptions import InvalidSignature
 
 from technocore_did import (
     classify_registry_response,
@@ -11,6 +12,7 @@ from technocore_did import (
     next_nonce,
     signed_say_url,
     sweep,
+    verify_signature,
 )
 
 SEED = bytes.fromhex('00' * 31 + '01')
@@ -103,3 +105,23 @@ def test_next_nonce_rejects_values_beyond_protocol_cap(tmp_path):
     identity = did_from_seed(SEED)
     with pytest.raises(OverflowError, match='19-digit'):
         next_nonce(state, identity, 'lobby', now_ms=10**19)
+
+
+def test_public_signature_verifier_accepts_generated_envelope():
+    _, envelope = signed_say_url(SEED, 'lobby', '303', 'hello world')
+    assert verify_signature(envelope['did'], 'lobby', envelope['nonce'],
+                            envelope['text'], envelope['signature']) is True
+
+
+def test_public_signature_verifier_rejects_tampering():
+    _, envelope = signed_say_url(SEED, 'lobby', '303', 'hello world')
+    with pytest.raises(InvalidSignature):
+        verify_signature(envelope['did'], 'lobby', envelope['nonce'],
+                         'tampered', envelope['signature'])
+
+
+def test_public_signature_verifier_rejects_wrong_multicodec():
+    _, envelope = signed_say_url(SEED, 'lobby', '303', 'hello world')
+    with pytest.raises(ValueError, match='Ed25519 did:key'):
+        verify_signature('did:key:z111', 'lobby', envelope['nonce'],
+                         envelope['text'], envelope['signature'])
