@@ -8,6 +8,7 @@ from cryptography.exceptions import InvalidSignature
 from technocore_did import (
     classify_registry_response,
     did_from_seed,
+    did_note_urls,
     find_receipt,
     next_nonce,
     signed_say_url,
@@ -23,6 +24,26 @@ def test_did_from_seed_is_stable_and_valid():
     assert value == 'did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG'
     assert value.startswith('did:key:z6Mk')
     assert len(value) == 56
+
+
+def test_did_note_urls_use_sharded_write_and_legacy_read_fallback():
+    urls = did_note_urls(did_from_seed(SEED), 'mailbox:mb-agent')
+    assert urls['fingerprint'] == '74cb01f67b39f88c'
+    assert urls['read_url'].endswith('/kv/did-74/cb01f67b39f88c')
+    assert urls['legacy_read_url'].endswith('/kv/did/74cb01f67b39f88c')
+    assert '/set/did%3Akey%3Az6Mk' in urls['write_url']
+    assert urls['write_url'].endswith('%20mailbox%3Amb-agent')
+
+
+def test_did_note_cli_never_prints_seed(tmp_path, capsys):
+    from technocore_did import main
+
+    seed_file = tmp_path / 'identity.seed'
+    seed_file.write_text(SEED.hex() + '\n')
+    main(['did-note-url', '--seed-file', str(seed_file)])
+    output = capsys.readouterr().out
+    assert SEED.hex() not in output
+    assert '/kv/did-74/cb01f67b39f88c/set/' in output
 
 
 def test_sweep_matches_protocol_single_line_rules():

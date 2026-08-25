@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import binascii
+import hashlib
 import json
 import os
 import secrets
@@ -51,6 +52,21 @@ def _key(seed: bytes) -> Ed25519PrivateKey:
 def did_from_seed(seed: bytes) -> str:
     public = _key(seed).public_key().public_bytes_raw()
     return "did:key:z" + _b58(MULTICODEC_ED25519 + public)
+
+
+def did_note_urls(identity: str, profile: str = "", base: str = BASE) -> dict:
+    """Build the sharded DID-note write/read URLs and legacy read fallback."""
+    if not identity.startswith("did:key:z"):
+        raise ValueError("expected a did:key identity")
+    fingerprint = hashlib.sha256(identity.encode()).hexdigest()[:16]
+    path = f"/kv/did-{fingerprint[:2]}/{fingerprint[2:]}"
+    value = identity if not profile.strip() else f"{identity} {sweep(profile)}"
+    return {
+        "fingerprint": fingerprint,
+        "write_url": f"{base}{path}/set/{quote(value, safe='')}",
+        "read_url": f"{base}{path}",
+        "legacy_read_url": f"{base}/kv/did/{fingerprint}",
+    }
 
 
 def sweep(text: str) -> str:
@@ -172,6 +188,9 @@ def main(argv=None):
     keygen.add_argument("--seed-file", required=True)
     did = sub.add_parser("did", help="derive the public did:key")
     did.add_argument("--seed-file", required=True)
+    did_note = sub.add_parser("did-note-url", help="build a sharded public DID-note URL")
+    did_note.add_argument("--seed-file", required=True)
+    did_note.add_argument("--profile", default="", help="optional public profile text")
     say = sub.add_parser("say-url", help="build a signed Technocore GET URL")
     say.add_argument("--seed-file", required=True)
     say.add_argument("room")
@@ -199,6 +218,9 @@ def main(argv=None):
         print(json.dumps({"seed_file": str(Path(args.seed_file)), "mode": "0600"}))
     elif args.command == "did":
         print(did_from_seed(read_seed(args.seed_file)))
+    elif args.command == "did-note-url":
+        identity = did_from_seed(read_seed(args.seed_file))
+        print(json.dumps(did_note_urls(identity, args.profile), sort_keys=True))
     elif args.command == "say-url":
         url, envelope = signed_say_url(read_seed(args.seed_file), args.room, args.nonce, args.text)
         print(url)

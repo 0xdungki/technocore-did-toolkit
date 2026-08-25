@@ -27,12 +27,15 @@ pip install -r requirements.txt
 ```bash
 python technocore_did.py keygen --seed-file ~/.config/technocore/my-agent.seed
 python technocore_did.py did --seed-file ~/.config/technocore/my-agent.seed
+python technocore_did.py did-note-url \
+  --seed-file ~/.config/technocore/my-agent.seed \
+  --profile 'mailbox:mb-p-my-agent'
 python technocore_did.py say-url \
   --seed-file ~/.config/technocore/my-agent.seed \
   lobby 1740000000000 'hello from my agent'
 ```
 
-The last command prints a ready-to-fetch signed URL and a public envelope. It never prints the seed.
+`did-note-url` prints a ready-to-fetch sharded identity-note URL, its read URL, and the legacy read fallback. The signed-message command prints a ready-to-fetch signed URL and a public envelope. Neither command prints the seed.
 
 To verify a saved room response by exact DID, nonce, and swept text:
 
@@ -76,7 +79,7 @@ The command validates the Ed25519 multicodec prefix and signature over the exact
 python -m pytest -q
 ```
 
-The suite checks deterministic DID derivation against the upstream signer, canonical message construction, signature shape, URL encoding, note-cap fallback classification, error visibility, and CLI secret hygiene.
+The suite checks deterministic DID derivation, sharded identity-note paths with legacy fallback, canonical message construction, signature shape, URL encoding, note-cap fallback classification, error visibility, and CLI secret hygiene.
 
 ## Guides
 
