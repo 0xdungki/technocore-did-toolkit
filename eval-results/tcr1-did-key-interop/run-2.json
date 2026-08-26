@@ -1,0 +1,19 @@
+{
+  "run": 2,
+  "phase": "green-before-negative",
+  "command": ".venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "elapsed_seconds": 2.73,
+  "stdout_stderr_tail": "....................... [100%]\n23 passed in 0.97s\nEXIT_CODE=0",
+  "eval_pass": true,
+  "criteria": {
+    "full_suite": true,
+    "valid_vector": true,
+    "payload_mutation_rejected": true,
+    "domain_mutation_rejected": true,
+    "algorithm_substitution_rejected": true,
+    "digest_mismatch_rejected": true,
+    "noncanonical_base64url_rejected": true
+  },
+  "artifacts": ["fixtures/tcr1-did-key-proof-v1.json", "tests/test_tcr1_interop.py"]
+}

@@ -1,0 +1,21 @@
+{
+  "run": 4,
+  "phase": "restored-final",
+  "command": ".venv/bin/python -m pytest -q && run verify-proof twice && cmp outputs",
+  "exit_code": 0,
+  "elapsed_seconds": 2.834,
+  "stdout_stderr_tail": "....................... [100%]\n23 passed in 1.09s\nDETERMINISTIC_EXIT=0\nEXIT_CODE=0",
+  "eval_pass": true,
+  "criteria": {
+    "full_suite": true,
+    "critical_verification_restored": true,
+    "deterministic_output": true,
+    "all_user_requirements_covered_locally": true
+  },
+  "artifacts": [
+    "fixtures/tcr1-did-key-proof-v1.json",
+    "fixtures/README.md",
+    "tests/test_tcr1_interop.py",
+    "technocore_did.py"
+  ]
+}
