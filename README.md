@@ -84,6 +84,9 @@ The committed [interoperability vector](fixtures/README.md) reconstructs
 `domain || NUL || canonical-json`, checks its declared SHA-256, and verifies the
 Ed25519 signature directly from the embedded `did:key`. Mutation tests cover
 payload, domain, algorithm, digest, and base64url representation boundaries.
+The proof CLI also rejects duplicate object members and Python's non-standard
+`NaN`/`Infinity` constants before canonicalization, avoiding parser-dependent
+signed bytes across implementations.
 The result establishes key control for those exact bytes only—not authorship,
 contribution truth, delivery, issuer acceptance, payment, or eligibility.
 

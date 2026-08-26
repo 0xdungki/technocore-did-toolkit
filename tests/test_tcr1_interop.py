@@ -90,3 +90,20 @@ def test_verify_detached_proof_cli_reports_only_bounded_key_control(capsys):
     assert set(result) == {
         "algorithm", "did", "domain", "key_control", "signing_input_sha256"
     }
+
+
+def test_verify_detached_proof_cli_rejects_duplicate_json_members(tmp_path):
+    duplicate = tmp_path / "duplicate.json"
+    duplicate.write_text('{"did":"first","did":"second"}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate JSON object member: did"):
+        technocore_did.main(["verify-proof", "--proof-json", str(duplicate)])
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_verify_detached_proof_cli_rejects_nonstandard_numeric_constants(tmp_path, constant):
+    nonstandard = tmp_path / "nonstandard.json"
+    nonstandard.write_text(f'{{"version":{constant}}}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match=f"non-standard JSON constant: {constant}"):
+        technocore_did.main(["verify-proof", "--proof-json", str(nonstandard)])

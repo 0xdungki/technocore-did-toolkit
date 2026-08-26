@@ -30,7 +30,10 @@ python -m pytest -q tests/test_tcr1_interop.py
 
 The tests reject a changed signed payload or domain even when an attacker
 updates the unhashed checksum field, plus algorithm substitution, checksum
-mismatch, and padded/non-canonical base64url.
+mismatch, and padded/non-canonical base64url. The CLI's strict JSON loader also
+rejects duplicate member names at any nesting level and the non-standard
+numeric constants `NaN`, `Infinity`, and `-Infinity` before canonicalization.
+This prevents different JSON parsers from selecting different signed content.
 
 ## Evidence boundary
 
