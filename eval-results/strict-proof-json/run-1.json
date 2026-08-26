@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "utc_timestamp": "2026-08-26T16:26:57Z",
+  "phase": "negative_test_implementation_removed",
+  "command": ".venv/bin/python -m pytest -q tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_duplicate_json_members tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_nonstandard_numeric_constants",
+  "exit_code": 1,
+  "elapsed_ms": 2612,
+  "stdout_stderr_tail": "FAILED tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_duplicate_json_members\nFAILED tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_nonstandard_numeric_constants[NaN]\nFAILED tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_nonstandard_numeric_constants[Infinity]\nFAILED tests/test_tcr1_interop.py::test_verify_detached_proof_cli_rejects_nonstandard_numeric_constants[-Infinity]\n4 failed in 1.14s",
+  "eval_pass": true,
+  "criteria": {
+    "negative_test_failed_without_implementation": true,
+    "failure_was_expected_behavior_gap": true
+  },
+  "artifacts": [
+    "tests/test_tcr1_interop.py"
+  ]
+}

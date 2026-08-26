@@ -1,0 +1,24 @@
+{
+  "run": 2,
+  "utc_timestamp": "2026-08-26T16:26:57Z",
+  "phase": "implementation_restored_full_suite",
+  "command": ".venv/bin/python -m pytest -q && .venv/bin/python -m pytest -q tests/test_tcr1_interop.py",
+  "exit_code": 0,
+  "elapsed_ms": 2404,
+  "stdout_stderr_tail": "27 passed in 0.69s\n11 passed in 0.55s",
+  "eval_pass": true,
+  "criteria": {
+    "reproducibility": true,
+    "valid_fixture_cli_verification": true,
+    "duplicate_members_rejected": true,
+    "nonstandard_numeric_constants_rejected": true,
+    "negative_test_proven": true,
+    "user_spec_match": true
+  },
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_tcr1_interop.py",
+    "fixtures/tcr1-did-key-proof-v1.json",
+    "eval-results/strict-proof-json/run-1.json"
+  ]
+}

@@ -155,6 +155,26 @@ def verify_detached_did_proof(proof: dict) -> dict:
     }
 
 
+def load_strict_json(path: str | Path):
+    """Load interoperable JSON without ambiguous extensions."""
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate JSON object member: {key}")
+            result[key] = value
+        return result
+
+    def reject_constant(value):
+        raise ValueError(f"non-standard JSON constant: {value}")
+
+    return json.loads(
+        Path(path).read_text(encoding="utf-8"),
+        object_pairs_hook=unique_object,
+        parse_constant=reject_constant,
+    )
+
+
 def classify_registry_response(status: int, body: str) -> str:
     if status == 200:
         return "individual-note"
@@ -277,7 +297,7 @@ def main(argv=None):
         verify_signature(args.did, args.room, args.nonce, args.text, args.signature)
         print(json.dumps({"valid": True, "did": args.did, "nonce": args.nonce}, sort_keys=True))
     else:
-        proof_document = json.loads(Path(args.proof_json).read_text(encoding="utf-8"))
+        proof_document = load_strict_json(args.proof_json)
         print(json.dumps(verify_detached_did_proof(proof_document), sort_keys=True))
 
 
