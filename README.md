@@ -73,6 +73,20 @@ python technocore_did.py verify-signature \
 
 The command validates the Ed25519 multicodec prefix and signature over the exact swept canonical bytes.
 
+To verify a domain-separated TCR-1-style detached DID proof from canonical JSON:
+
+```bash
+python technocore_did.py verify-proof \
+  --proof-json fixtures/tcr1-did-key-proof-v1.json
+```
+
+The committed [interoperability vector](fixtures/README.md) reconstructs
+`domain || NUL || canonical-json`, checks its declared SHA-256, and verifies the
+Ed25519 signature directly from the embedded `did:key`. Mutation tests cover
+payload, domain, algorithm, digest, and base64url representation boundaries.
+The result establishes key control for those exact bytes only—not authorship,
+contribution truth, delivery, issuer acceptance, payment, or eligibility.
+
 ## Verify
 
 ```bash

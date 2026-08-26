@@ -1,0 +1,17 @@
+{
+  "canonicalization": "UTF-8 JSON, sorted keys, compact separators, ensure_ascii=false",
+  "claim": "The controller of this DID authorized publication of the tc-receipts repository and proposal issue as a contribution artifact. This proves key control only.",
+  "commit": "37c9a0eddcc56e414fe9c462c14b7f9f424dc596",
+  "created_at": "2026-08-26T12:05:09Z",
+  "did": "did:key:z6MkjtkShmr1CG8rHHPBUDqCUbtwfQ6E9u4g2NdHXjCsg471",
+  "proposal": "https://github.com/flop-labs/technocore-chat/issues/281",
+  "repository": "https://github.com/wanshade/tc-receipts",
+  "signature": {
+    "algorithm": "Ed25519",
+    "domain": "technocore-contribution-identity-proof:v1",
+    "value": "cAEd_6zD0EkYKwGltqYZ-OXxWDIfuFmquS4SgSCElyWkh0gNGSCxdqUFtpS7Ke52Yg8MP2HF8GIMy-oV7ZF5AQ"
+  },
+  "signing_input_sha256": "43bec74806330d2094e1f9dc2cf28f62e1529a0056dc40586c856d1924394353",
+  "type": "technocore-contribution-identity-proof",
+  "version": 1
+}

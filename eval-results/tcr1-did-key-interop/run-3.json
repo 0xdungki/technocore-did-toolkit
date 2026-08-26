@@ -1,0 +1,12 @@
+{
+  "run": 3,
+  "phase": "negative-eval",
+  "change": "Temporarily removed Ed25519PublicKey.verify(raw_signature, signing_input)",
+  "command": ".venv/bin/python -m pytest -q tests/test_tcr1_interop.py",
+  "exit_code": 1,
+  "elapsed_seconds": 2.81,
+  "stdout_stderr_tail": "FAILED test_tcr1_vector_rejects_payload_mutation_even_with_updated_hash\nFAILED test_tcr1_vector_rejects_domain_mutation_even_with_updated_hash\n2 failed, 5 passed in 1.04s\nEXIT_CODE=1",
+  "eval_pass": true,
+  "criteria": {"eval_fails_without_critical_verification": true},
+  "artifacts": ["tests/test_tcr1_interop.py"]
+}

@@ -114,6 +114,47 @@ def verify_signature(identity: str, room: str, nonce: str, text: str, signature:
     return True
 
 
+def verify_detached_did_proof(proof: dict) -> dict:
+    """Verify a domain-separated canonical-JSON proof with an Ed25519 did:key."""
+    signature = proof["signature"]
+    if signature.get("algorithm") != "Ed25519":
+        raise ValueError("proof signature algorithm must be Ed25519")
+    domain = signature["domain"]
+    value = signature["value"]
+    if not isinstance(value, str) or len(value) != 86 or "=" in value:
+        raise ValueError("proof signature must be canonical unpadded base64url")
+    try:
+        raw_signature = base64.b64decode(value + "==", altchars=b"-_", validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError("proof signature must be canonical unpadded base64url") from exc
+
+    unsigned = {key: item for key, item in proof.items()
+                if key not in {"signature", "signing_input_sha256"}}
+    canonical = json.dumps(
+        unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    signing_input = domain.encode("utf-8") + b"\0" + canonical
+    digest = hashlib.sha256(signing_input).hexdigest()
+    if proof.get("signing_input_sha256") != digest:
+        raise ValueError("signing_input_sha256 does not match reconstructed bytes")
+
+    identity = proof["did"]
+    prefix = "did:key:z"
+    if not isinstance(identity, str) or not identity.startswith(prefix):
+        raise ValueError("expected an Ed25519 did:key")
+    material = _b58decode(identity[len(prefix):])
+    if len(material) != 34 or material[:2] != MULTICODEC_ED25519:
+        raise ValueError("expected an Ed25519 did:key multicodec payload")
+    Ed25519PublicKey.from_public_bytes(material[2:]).verify(raw_signature, signing_input)
+    return {
+        "algorithm": "Ed25519",
+        "did": identity,
+        "domain": domain,
+        "key_control": True,
+        "signing_input_sha256": digest,
+    }
+
+
 def classify_registry_response(status: int, body: str) -> str:
     if status == 200:
         return "individual-note"
@@ -211,6 +252,8 @@ def main(argv=None):
     signature.add_argument("--nonce", required=True)
     signature.add_argument("--text", required=True)
     signature.add_argument("--signature", required=True)
+    proof = sub.add_parser("verify-proof", help="verify a domain-separated did:key JSON proof")
+    proof.add_argument("--proof-json", required=True)
     args = parser.parse_args(argv)
 
     if args.command == "keygen":
@@ -230,9 +273,12 @@ def main(argv=None):
         print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
     elif args.command == "next-nonce":
         print(next_nonce(args.state_file, args.did, args.room))
-    else:
+    elif args.command == "verify-signature":
         verify_signature(args.did, args.room, args.nonce, args.text, args.signature)
         print(json.dumps({"valid": True, "did": args.did, "nonce": args.nonce}, sort_keys=True))
+    else:
+        proof_document = json.loads(Path(args.proof_json).read_text(encoding="utf-8"))
+        print(json.dumps(verify_detached_did_proof(proof_document), sort_keys=True))
 
 
 if __name__ == "__main__":
