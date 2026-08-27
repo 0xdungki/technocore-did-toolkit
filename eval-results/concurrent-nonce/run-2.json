@@ -1,0 +1,23 @@
+{
+  "run": 2,
+  "kind": "fixed-state-verification",
+  "timestamp_utc": "2026-08-27T22:55:09Z",
+  "command": ".venv/bin/python -m pytest -q",
+  "change_state": "POSIX inter-process lock applied",
+  "exit_code": 0,
+  "duration_seconds": 4.743,
+  "stdout_tail": "............................ [100%]\n28 passed in 1.43s",
+  "eval": {
+    "focused_test_three_consecutive_passes": true,
+    "eight_unique_consecutive_nonces": true,
+    "valid_json_and_mode_0600": true,
+    "full_regression_suite": "28 passed",
+    "expected_result": "PASS",
+    "actual_result": "PASS"
+  },
+  "artifact_paths": [
+    "technocore_did.py",
+    "tests/test_toolkit.py",
+    "eval-results/concurrent-nonce/eval.md"
+  ]
+}

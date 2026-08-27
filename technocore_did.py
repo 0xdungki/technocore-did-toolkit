@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import binascii
+import fcntl
 import hashlib
 import json
 import os
@@ -212,19 +213,23 @@ def next_nonce(state_path: str | Path, identity: str, room: str, now_ms: int | N
     """Atomically persist a nonce that increases per DID and room."""
     target = Path(state_path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    state = json.loads(target.read_text()) if target.exists() else {}
-    if not isinstance(state, dict):
-        raise ValueError("nonce state must be a JSON object")
-    key = f"{identity}|{room}"
-    clock = int(time.time() * 1000) if now_ms is None else int(now_ms)
-    value = max(clock, int(state.get(key, 0)) + 1)
-    if value > 9_999_999_999_999_999_999:
-        raise OverflowError("nonce exceeds Technocore's 19-digit cap")
-    state[key] = value
-    temporary = target.with_name(target.name + ".tmp")
-    temporary.write_text(json.dumps(state, sort_keys=True) + "\n")
-    os.chmod(temporary, 0o600)
-    os.replace(temporary, target)
+    lock_path = target.with_name(target.name + ".lock")
+    lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+    with os.fdopen(lock_fd, "r+") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        state = json.loads(target.read_text()) if target.exists() else {}
+        if not isinstance(state, dict):
+            raise ValueError("nonce state must be a JSON object")
+        key = f"{identity}|{room}"
+        clock = int(time.time() * 1000) if now_ms is None else int(now_ms)
+        value = max(clock, int(state.get(key, 0)) + 1)
+        if value > 9_999_999_999_999_999_999:
+            raise OverflowError("nonce exceeds Technocore's 19-digit cap")
+        state[key] = value
+        temporary = target.with_name(target.name + ".tmp")
+        temporary.write_text(json.dumps(state, sort_keys=True) + "\n")
+        os.chmod(temporary, 0o600)
+        os.replace(temporary, target)
     return str(value)
 
 

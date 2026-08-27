@@ -1,0 +1,18 @@
+{
+  "run": 1,
+  "kind": "negative-test",
+  "timestamp_utc": "2026-08-27T22:53:00Z",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_next_nonce_serializes_independent_processes -q",
+  "change_state": "production lock reverted to baseline; new regression test retained",
+  "exit_code": 1,
+  "duration_seconds": 2.48,
+  "stdout_tail": "FAILED tests/test_toolkit.py::test_next_nonce_serializes_independent_processes\n1 failed in 2.48s",
+  "eval": {
+    "negative_test_detects_baseline_race": true,
+    "expected_result": "FAIL",
+    "actual_result": "FAIL"
+  },
+  "artifact_paths": [
+    "tests/test_toolkit.py::test_next_nonce_serializes_independent_processes"
+  ]
+}
