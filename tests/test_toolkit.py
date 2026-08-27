@@ -1,4 +1,6 @@
 import base64
+import json
+import multiprocessing
 import re
 from pathlib import Path
 
@@ -17,6 +19,15 @@ from technocore_did import (
 )
 
 SEED = bytes.fromhex('00' * 31 + '01')
+
+
+def _allocate_nonce_concurrently(state, identity, ready, start, results):
+    ready.put(True)
+    start.wait()
+    try:
+        results.put(('ok', next_nonce(state, identity, 'lobby', now_ms=1000)))
+    except Exception as exc:
+        results.put(('error', f'{type(exc).__name__}: {exc}'))
 
 
 def test_did_from_seed_is_stable_and_valid():
@@ -118,6 +129,36 @@ def test_next_nonce_is_monotonic_and_persistent(tmp_path):
     assert next_nonce(state, identity, 'lobby', now_ms=1000) == '1000'
     assert next_nonce(state, identity, 'lobby', now_ms=1000) == '1001'
     assert next_nonce(state, identity, 'other', now_ms=1000) == '1000'
+    assert state.stat().st_mode & 0o777 == 0o600
+
+
+def test_next_nonce_serializes_independent_processes(tmp_path):
+    state = tmp_path / 'nonces.json'
+    identity = did_from_seed(SEED)
+    process_count = 8
+    ready = multiprocessing.Queue()
+    results = multiprocessing.Queue()
+    start = multiprocessing.Event()
+    processes = [
+        multiprocessing.Process(
+            target=_allocate_nonce_concurrently,
+            args=(state, identity, ready, start, results),
+        )
+        for _ in range(process_count)
+    ]
+
+    for process in processes:
+        process.start()
+    for _ in processes:
+        ready.get(timeout=5)
+    start.set()
+    observed = [results.get(timeout=5) for _ in processes]
+    for process in processes:
+        process.join(timeout=5)
+        assert process.exitcode == 0
+
+    assert sorted(observed) == [('ok', str(value)) for value in range(1000, 1008)]
+    assert json.loads(state.read_text()) == {f'{identity}|lobby': 1007}
     assert state.stat().st_mode & 0o777 == 0o600
 
 

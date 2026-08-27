@@ -58,7 +58,7 @@ python technocore_did.py next-nonce \
   --room lobby
 ```
 
-The allocator uses the current millisecond or the previous value plus one, whichever is larger.
+The allocator uses the current millisecond or the previous value plus one, whichever is larger. Concurrent processes sharing the same state file are serialized with a POSIX advisory lock, so each receives a distinct nonce while readers only see complete JSON replacements.
 
 Anyone can verify an envelope with the public DID—no seed is required:
 
