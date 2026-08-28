@@ -1,0 +1,19 @@
+{
+  "run": 1,
+  "phase": "RED / baseline negative test",
+  "date_wib": "2026-08-29",
+  "command": ".venv/bin/python -m pytest tests/test_tcr1_interop.py::test_tcr1_vector_rejects_integer_outside_cross_runtime_safe_range -q",
+  "exit_code": 1,
+  "elapsed_seconds": 8.74,
+  "stdout_tail": "FAILED: verifier reached Ed25519 verification and raised cryptography.exceptions.InvalidSignature instead of rejecting integer 9007199254740992 at the canonicalization boundary",
+  "criteria": {
+    "baseline_fails": true,
+    "failure_is_expected_missing_behavior": true,
+    "critical_component_mocked": false
+  },
+  "eval_pass": false,
+  "artifacts": [
+    "tests/test_tcr1_interop.py",
+    "eval-results/tcr1-safe-integers/eval.md"
+  ]
+}

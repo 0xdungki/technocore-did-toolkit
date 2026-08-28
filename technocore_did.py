@@ -115,6 +115,19 @@ def verify_signature(identity: str, room: str, nonce: str, text: str, signature:
     return True
 
 
+def _validate_interoperable_json_integers(value) -> None:
+    """Reject integers that common JSON runtimes cannot represent exactly."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        if abs(value) > 9_007_199_254_740_991:
+            raise ValueError("JSON integer exceeds interoperable safe range")
+    elif isinstance(value, dict):
+        for item in value.values():
+            _validate_interoperable_json_integers(item)
+    elif isinstance(value, list):
+        for item in value:
+            _validate_interoperable_json_integers(item)
+
+
 def verify_detached_did_proof(proof: dict) -> dict:
     """Verify a domain-separated canonical-JSON proof with an Ed25519 did:key."""
     signature = proof["signature"]
@@ -131,6 +144,7 @@ def verify_detached_did_proof(proof: dict) -> dict:
 
     unsigned = {key: item for key, item in proof.items()
                 if key not in {"signature", "signing_input_sha256"}}
+    _validate_interoperable_json_integers(unsigned)
     canonical = json.dumps(
         unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
