@@ -1,0 +1,37 @@
+{
+  "run": 2,
+  "phase": "GREEN + negative-test verification",
+  "date_wib": "2026-08-29",
+  "commands": [
+    "for i in 1 2 3; do .venv/bin/python -m pytest tests/test_tcr1_interop.py::test_tcr1_vector_rejects_integer_outside_cross_runtime_safe_range -q; done",
+    ".venv/bin/python -m pytest -q",
+    "remove critical validator call; run focused test; restore call; run focused and full suite"
+  ],
+  "exit_codes": {
+    "focused_three_runs": 0,
+    "full_suite": 0,
+    "critical_line_removed": 1,
+    "critical_line_restored": 0
+  },
+  "stdout_tail": "Focused: 1 passed x3; full suite: 29 passed; validator removed: expected failure (InvalidSignature instead of bounded safe-range rejection); restored: 1 passed then 29 passed",
+  "elapsed_seconds": {
+    "focused_three_runs": 21.42,
+    "full_suite": 7.56
+  },
+  "criteria": {
+    "reproducible": true,
+    "unsafe_integer_rejected_before_signature_verification": true,
+    "committed_fixture_still_verifies": true,
+    "negative_test_fails_without_fix": true,
+    "restored_fix_passes": true,
+    "critical_component_mocked": false
+  },
+  "eval_pass": true,
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_tcr1_interop.py",
+    "README.md",
+    "eval-results/tcr1-safe-integers/eval.md",
+    "eval-results/tcr1-safe-integers/run-1.json"
+  ]
+}

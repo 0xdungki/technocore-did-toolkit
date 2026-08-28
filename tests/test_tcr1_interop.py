@@ -82,6 +82,15 @@ def test_tcr1_vector_rejects_algorithm_substitution():
         technocore_did.verify_detached_did_proof(proof)
 
 
+def test_tcr1_vector_rejects_integer_outside_cross_runtime_safe_range():
+    proof = deepcopy(load_vector())
+    proof["version"] = 9_007_199_254_740_992
+    update_signing_input_hash(proof)
+
+    with pytest.raises(ValueError, match="JSON integer exceeds interoperable safe range"):
+        technocore_did.verify_detached_did_proof(proof)
+
+
 def test_verify_detached_proof_cli_reports_only_bounded_key_control(capsys):
     technocore_did.main(["verify-proof", "--proof-json", str(FIXTURE)])
 
