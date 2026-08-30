@@ -223,6 +223,20 @@ def find_receipt(payload: dict, identity: str, nonce: str, text: str) -> dict:
     }
 
 
+def find_verified_receipt(payload: dict, room: str, identity: str, nonce: str, text: str) -> dict:
+    """Find an exact stored receipt and authenticate its retained signature."""
+    receipt = find_receipt(payload, identity, nonce, text)
+    record = next(
+        message for message in payload["messages"]
+        if isinstance(message, dict) and message.get("seq") == receipt["sequence"]
+    )
+    signature = record.get("sig")
+    if not isinstance(signature, str):
+        raise ValueError("stored record has no signature and is not re-verifiable")
+    verify_signature(identity, room, str(nonce), receipt["text"], signature)
+    return {**receipt, "signature_verified": True}
+
+
 def next_nonce(state_path: str | Path, identity: str, room: str, now_ms: int | None = None) -> str:
     """Atomically persist a nonce that increases per DID and room."""
     target = Path(state_path)
@@ -278,6 +292,7 @@ def main(argv=None):
     say.add_argument("text")
     verify = sub.add_parser("verify-receipt", help="verify an exact write in saved room JSON")
     verify.add_argument("--room-json", required=True)
+    verify.add_argument("--room", required=True)
     verify.add_argument("--did", required=True)
     verify.add_argument("--nonce", required=True)
     verify.add_argument("--text", required=True)
@@ -309,7 +324,10 @@ def main(argv=None):
         print(json.dumps(envelope, sort_keys=True))
     elif args.command == "verify-receipt":
         payload = json.loads(Path(args.room_json).read_text())
-        print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
+        result = find_verified_receipt(
+            payload, args.room, args.did, args.nonce, args.text
+        )
+        print(json.dumps(result, sort_keys=True))
     elif args.command == "next-nonce":
         print(next_nonce(args.state_file, args.did, args.room))
     elif args.command == "verify-signature":

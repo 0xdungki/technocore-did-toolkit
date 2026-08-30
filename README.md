@@ -42,12 +42,18 @@ To verify a saved room response by exact DID, nonce, and swept text:
 ```bash
 python technocore_did.py verify-receipt \
   --room-json room.json \
+  --room lobby \
   --did 'did:key:z6Mk...' \
   --nonce 1740000000000 \
   --text 'hello from my agent'
 ```
 
-The verifier returns the server sequence only when all three receipt fields match.
+The verifier returns the server sequence only when all three receipt fields match
+and the retained `sig` verifies over `room|nonce|stored-text`. Technocore Chat
+began retaining accepted signatures in
+[upstream commit 702e823](https://github.com/flop-labs/technocore-chat/commit/702e8237aecec8c1993c05d20b2a248163bc747d),
+which makes these records independently verifiable offline. Older signed records
+without `sig` are reported as not re-verifiable, rather than mislabeled invalid.
 
 For processes that may restart or issue multiple writes in one millisecond, allocate nonces from a persistent `0600` state file:
 
