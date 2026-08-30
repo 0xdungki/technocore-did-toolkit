@@ -1,0 +1,10 @@
+{
+  "run": 1,
+  "phase": "red_baseline",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_find_verified_receipt_authenticates_stored_signature -q",
+  "exit_code": 1,
+  "elapsed_ms": 26727,
+  "stdout_tail": "FAILED tests/test_toolkit.py::test_find_verified_receipt_authenticates_stored_signature - AttributeError: module 'technocore_did' has no attribute 'find_verified_receipt'\n1 failed in 19.72s",
+  "eval_pass": false,
+  "criterion": "Baseline lacks offline stored-signature verification, so the new behavioral test fails for the expected missing-feature reason."
+}

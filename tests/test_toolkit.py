@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 import pytest
+import technocore_did
 from cryptography.exceptions import InvalidSignature
 
 from technocore_did import (
@@ -102,6 +103,57 @@ def test_find_receipt_requires_did_nonce_and_swept_text():
     assert receipt == {'did': identity, 'nonce': '101', 'text': 'hello world', 'sequence': 6}
 
 
+def test_find_verified_receipt_authenticates_stored_signature():
+    _, envelope = signed_say_url(SEED, 'lobby', '102', 'signed record')
+    payload = {'messages': [{
+        'from': envelope['did'],
+        'nonce': envelope['nonce'],
+        'text': envelope['text'],
+        'sig': envelope['signature'],
+        'seq': 7,
+    }]}
+
+    receipt = technocore_did.find_verified_receipt(
+        payload, 'lobby', envelope['did'], envelope['nonce'], envelope['text']
+    )
+
+    assert receipt == {
+        'did': envelope['did'],
+        'nonce': '102',
+        'text': 'signed record',
+        'sequence': 7,
+        'signature_verified': True,
+    }
+
+
+def test_find_verified_receipt_rejects_tampered_stored_text():
+    _, envelope = signed_say_url(SEED, 'lobby', '103', 'original')
+    payload = {'messages': [{
+        'from': envelope['did'],
+        'nonce': envelope['nonce'],
+        'text': 'tampered',
+        'sig': envelope['signature'],
+        'seq': 8,
+    }]}
+
+    with pytest.raises(InvalidSignature):
+        technocore_did.find_verified_receipt(
+            payload, 'lobby', envelope['did'], envelope['nonce'], 'tampered'
+        )
+
+
+def test_find_verified_receipt_labels_historical_record_without_signature():
+    identity = did_from_seed(SEED)
+    payload = {'messages': [{
+        'from': identity, 'nonce': '104', 'text': 'historical', 'seq': 9,
+    }]}
+
+    with pytest.raises(ValueError, match='not re-verifiable'):
+        technocore_did.find_verified_receipt(
+            payload, 'lobby', identity, '104', 'historical'
+        )
+
+
 def test_find_receipt_rejects_missing_or_malformed_payload():
     identity = did_from_seed(SEED)
     with pytest.raises(LookupError, match='receipt not found'):
@@ -110,17 +162,20 @@ def test_find_receipt_rejects_missing_or_malformed_payload():
         find_receipt({'messages': 'not-a-list'}, identity, '101', 'hello')
 
 
-def test_verify_receipt_cli_outputs_public_receipt(tmp_path, capsys):
+def test_verify_receipt_cli_outputs_cryptographically_verified_receipt(tmp_path, capsys):
     import json
     from technocore_did import main
-    identity = did_from_seed(SEED)
+    _, envelope = signed_say_url(SEED, 'lobby', '202', 'published')
     room = tmp_path / 'room.json'
     room.write_text(json.dumps({'messages': [
-        {'from': identity, 'nonce': '202', 'text': 'published', 'seq': 42}
+        {'from': envelope['did'], 'nonce': '202', 'text': 'published',
+         'sig': envelope['signature'], 'seq': 42}
     ]}))
-    main(['verify-receipt', '--room-json', str(room), '--did', identity,
+    main(['verify-receipt', '--room-json', str(room), '--room', 'lobby', '--did', envelope['did'],
           '--nonce', '202', '--text', 'published'])
-    assert json.loads(capsys.readouterr().out)['sequence'] == 42
+    result = json.loads(capsys.readouterr().out)
+    assert result['sequence'] == 42
+    assert result['signature_verified'] is True
 
 
 def test_next_nonce_is_monotonic_and_persistent(tmp_path):

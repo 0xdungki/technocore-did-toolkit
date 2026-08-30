@@ -1,0 +1,19 @@
+{
+  "run": 3,
+  "phase": "restored_full_suite",
+  "command": ".venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "elapsed_ms": 5018,
+  "stdout_tail": "................................ [100%]\n32 passed in 1.57s",
+  "eval_pass": true,
+  "criteria": {
+    "reproducibility": "PASS: full network-free suite passed",
+    "demonstrability": "PASS: real Ed25519 stored record accepted and CLI emits signature_verified=true",
+    "negative_test": "PASS: removing verify_signature made the tamper test fail; restored implementation passes",
+    "user_spec_match": "LOCAL PASS: meaningful DID utility tied to official commit 702e823; live commit and CI pending"
+  },
+  "artifacts": [
+    "eval-results/technocore-0xdungki-2026-08-31/eval.md",
+    "tests/test_toolkit.py"
+  ]
+}
