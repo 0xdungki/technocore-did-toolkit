@@ -1,0 +1,15 @@
+{
+  "run": 5,
+  "phase": "GREEN-full-suite",
+  "command": ".venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "elapsed_ms": 8037,
+  "stdout_stderr_tail": "...................................                                      [100%]\n35 passed in 2.82s",
+  "eval_pass": true,
+  "criteria": {
+    "full_regression_suite_passes": true
+  },
+  "artifacts": [
+    "/tmp/atomic-seed-full.log"
+  ]
+}

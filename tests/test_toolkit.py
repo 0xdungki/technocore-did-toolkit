@@ -10,6 +10,7 @@ from cryptography.exceptions import InvalidSignature
 
 from technocore_did import (
     classify_registry_response,
+    create_seed,
     did_from_seed,
     did_note_urls,
     find_receipt,
@@ -36,6 +37,37 @@ def test_did_from_seed_is_stable_and_valid():
     assert value == 'did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG'
     assert value.startswith('did:key:z6Mk')
     assert len(value) == 56
+
+
+def test_create_seed_refuses_dangling_symlink_without_creating_target(tmp_path):
+    target = tmp_path / 'outside.seed'
+    seed_path = tmp_path / 'identity.seed'
+    seed_path.symlink_to(target)
+
+    with pytest.raises(FileExistsError):
+        create_seed(seed_path)
+
+    assert seed_path.is_symlink()
+    assert not target.exists()
+
+
+def test_create_seed_writes_private_32_byte_hex_material(tmp_path):
+    seed_path = tmp_path / 'identity.seed'
+
+    create_seed(seed_path)
+
+    assert len(bytes.fromhex(seed_path.read_text().strip())) == 32
+    assert seed_path.stat().st_mode & 0o777 == 0o600
+
+
+def test_create_seed_does_not_overwrite_existing_file(tmp_path):
+    seed_path = tmp_path / 'identity.seed'
+    seed_path.write_text('keep-me\n')
+
+    with pytest.raises(FileExistsError):
+        create_seed(seed_path)
+
+    assert seed_path.read_text() == 'keep-me\n'
 
 
 def test_did_note_urls_use_sharded_write_and_legacy_read_fallback():
