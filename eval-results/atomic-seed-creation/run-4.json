@@ -1,0 +1,19 @@
+{
+  "run": 4,
+  "phase": "GREEN-focused",
+  "command": ".venv/bin/python -m pytest -q tests/test_toolkit.py -k create_seed",
+  "exit_code": 0,
+  "elapsed_ms": 7217,
+  "stdout_stderr_tail": "...                                                                      [100%]\n3 passed, 20 deselected in 1.95s",
+  "eval_pass": true,
+  "criteria": {
+    "dangling_symlink_refused": true,
+    "existing_seed_unchanged": true,
+    "new_seed_is_32_bytes_hex_and_0600": true
+  },
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_toolkit.py",
+    "/tmp/atomic-seed-focused.log"
+  ]
+}

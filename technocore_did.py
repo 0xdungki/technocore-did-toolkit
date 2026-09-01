@@ -269,10 +269,10 @@ def read_seed(path: str | Path) -> bytes:
 def create_seed(path: str | Path) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
-        raise FileExistsError(f"refusing to overwrite {target}")
-    target.write_text(secrets.token_hex(32) + "\n")
-    os.chmod(target, 0o600)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    fd = os.open(target, flags, 0o600)
+    with os.fdopen(fd, "w") as seed_file:
+        seed_file.write(secrets.token_hex(32) + "\n")
 
 
 def main(argv=None):

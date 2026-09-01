@@ -1,0 +1,16 @@
+{
+  "run": 6,
+  "phase": "NEGATIVE-fix-reverted",
+  "command": "git checkout origin/main -- technocore_did.py && .venv/bin/python -m pytest -q tests/test_toolkit.py::test_create_seed_refuses_dangling_symlink_without_creating_target",
+  "exit_code": 1,
+  "elapsed_ms": 9542,
+  "stdout_stderr_tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______ test_create_seed_refuses_dangling_symlink_without_creating_target _______\n\ntmp_path = PosixPath('/tmp/pytest-of-celeng/pytest-69/test_create_seed_refuses_dangl0')\n\n    def test_create_seed_refuses_dangling_symlink_without_creating_target(tmp_path):\n        target = tmp_path / 'outside.seed'\n        seed_path = tmp_path / 'identity.seed'\n        seed_path.symlink_to(target)\n    \n>       with pytest.raises(FileExistsError):\nE       Failed: DID NOT RAISE FileExistsError\n\ntests/test_toolkit.py:47: Failed\n=========================== short test summary info ============================\nFAILED tests/test_toolkit.py::test_create_seed_refuses_dangling_symlink_without_creating_target\n1 failed in 3.88s",
+  "eval_pass": true,
+  "criteria": {
+    "eval_fails_without_production_fix_for_expected_reason": true
+  },
+  "artifacts": [
+    "/tmp/atomic-seed-fix.patch",
+    "/tmp/atomic-seed-negative.log"
+  ]
+}

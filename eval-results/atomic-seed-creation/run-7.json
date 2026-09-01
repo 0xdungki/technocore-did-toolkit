@@ -1,0 +1,19 @@
+{
+  "run": 7,
+  "phase": "FINAL-restored",
+  "command": ".venv/bin/python -m pytest -q tests/test_toolkit.py -k create_seed (twice); .venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "elapsed_ms": 22877,
+  "stdout_stderr_tail": "--- focused run A ---\n...                                                                      [100%]\n3 passed, 20 deselected in 1.78s\n--- focused run B ---\n...                                                                      [100%]\n3 passed, 20 deselected in 1.76s\n--- full suite ---\n...................................                                      [100%]\n35 passed in 3.01s",
+  "eval_pass": true,
+  "criteria": {
+    "focused_tests_deterministic_two_runs": true,
+    "full_regression_suite_passes": true,
+    "production_fix_restored": true
+  },
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_toolkit.py",
+    "/tmp/atomic-seed-final.log"
+  ]
+}
