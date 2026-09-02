@@ -1,0 +1,30 @@
+{
+  "run": 2,
+  "phase": "restored-fix-final",
+  "date": "2026-09-02",
+  "command": ".venv/bin/python -m pytest -q tests/test_toolkit.py::test_next_nonce_ignores_predictable_temp_symlink && .venv/bin/python -m pytest -q tests/test_toolkit.py::test_next_nonce_ignores_predictable_temp_symlink && .venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "duration_seconds": 35,
+  "stdout_stderr_tail": [
+    "focused run 1: 1 passed in 2.92s",
+    "focused run 2: 1 passed in 3.00s",
+    "full suite: 36 passed in 4.02s"
+  ],
+  "eval": {
+    "reproducible_focused_test": true,
+    "victim_bytes_and_mode_unchanged": true,
+    "state_json_mode_and_nonce_valid": true,
+    "temporary_file_cleaned": true,
+    "full_regression_suite_passed": true,
+    "baseline_negative_test_failed": true,
+    "critical_component_mocked": false
+  },
+  "pass": true,
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_toolkit.py",
+    "eval-results/secure-nonce-tempfile/eval.md",
+    "eval-results/secure-nonce-tempfile/run-1.json",
+    "eval-results/secure-nonce-tempfile/run-2.json"
+  ]
+}

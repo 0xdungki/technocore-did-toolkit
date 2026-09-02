@@ -249,6 +249,26 @@ def test_next_nonce_serializes_independent_processes(tmp_path):
     assert state.stat().st_mode & 0o777 == 0o600
 
 
+def test_next_nonce_ignores_predictable_temp_symlink(tmp_path):
+    state = tmp_path / 'nonces.json'
+    legacy_temp = tmp_path / 'nonces.json.tmp'
+    victim = tmp_path / 'unrelated.txt'
+    victim.write_text('do not modify\n')
+    victim.chmod(0o644)
+    legacy_temp.symlink_to(victim)
+    identity = did_from_seed(SEED)
+
+    assert next_nonce(state, identity, 'lobby', now_ms=1000) == '1000'
+
+    assert victim.read_text() == 'do not modify\n'
+    assert victim.stat().st_mode & 0o777 == 0o644
+    assert legacy_temp.is_symlink()
+    assert not state.is_symlink()
+    assert json.loads(state.read_text()) == {f'{identity}|lobby': 1000}
+    assert state.stat().st_mode & 0o777 == 0o600
+    assert list(tmp_path.glob('.nonces.json.*')) == []
+
+
 def test_next_nonce_rejects_values_beyond_protocol_cap(tmp_path):
     state = tmp_path / 'nonces.json'
     identity = did_from_seed(SEED)
