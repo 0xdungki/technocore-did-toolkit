@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import secrets
+import tempfile
 import time
 import unicodedata
 from pathlib import Path
@@ -254,10 +255,16 @@ def next_nonce(state_path: str | Path, identity: str, room: str, now_ms: int | N
         if value > 9_999_999_999_999_999_999:
             raise OverflowError("nonce exceeds Technocore's 19-digit cap")
         state[key] = value
-        temporary = target.with_name(target.name + ".tmp")
-        temporary.write_text(json.dumps(state, sort_keys=True) + "\n")
-        os.chmod(temporary, 0o600)
-        os.replace(temporary, target)
+        temporary_fd, temporary_name = tempfile.mkstemp(
+            prefix=f".{target.name}.", dir=target.parent
+        )
+        temporary = Path(temporary_name)
+        try:
+            with os.fdopen(temporary_fd, "w") as temporary_file:
+                temporary_file.write(json.dumps(state, sort_keys=True) + "\n")
+            os.replace(temporary, target)
+        finally:
+            temporary.unlink(missing_ok=True)
     return str(value)
 
 
