@@ -1,0 +1,17 @@
+{
+  "run": 2,
+  "phase": "NEGATIVE",
+  "command": "git checkout HEAD^ -- technocore_did.py && .venv/bin/python -m pytest tests/test_toolkit.py::test_read_seed_refuses_symlink tests/test_toolkit.py::test_read_seed_refuses_group_or_world_accessible_file tests/test_toolkit.py::test_read_seed_accepts_private_regular_file -q",
+  "exit_code": 1,
+  "elapsed_seconds": 110,
+  "eval_pass": true,
+  "criteria": {
+    "production_change_reverted": true,
+    "symlink_test_failed": true,
+    "permissive_mode_test_failed": true,
+    "valid_private_seed_regression_test_passed": true,
+    "production_change_restored_after_run": true
+  },
+  "stdout_tail": "FF. [100%]\nFAILED tests/test_toolkit.py::test_read_seed_refuses_symlink - Failed: DID NOT RAISE ValueError\nFAILED tests/test_toolkit.py::test_read_seed_refuses_group_or_world_accessible_file - Failed: DID NOT RAISE PermissionError\n2 failed, 1 passed in 94.05s",
+  "artifacts": ["/tmp/seed-negative.log"]
+}

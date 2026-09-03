@@ -15,6 +15,7 @@ from technocore_did import (
     did_note_urls,
     find_receipt,
     next_nonce,
+    read_seed,
     signed_say_url,
     sweep,
     verify_signature,
@@ -70,6 +71,36 @@ def test_create_seed_does_not_overwrite_existing_file(tmp_path):
     assert seed_path.read_text() == 'keep-me\n'
 
 
+def test_read_seed_refuses_symlink(tmp_path):
+    target = tmp_path / 'actual.seed'
+    target.write_text(SEED.hex() + '\n')
+    target.chmod(0o600)
+    seed_path = tmp_path / 'identity.seed'
+    seed_path.symlink_to(target)
+
+    with pytest.raises(ValueError, match='regular file'):
+        read_seed(seed_path)
+
+
+def test_read_seed_refuses_group_or_world_accessible_file(tmp_path):
+    seed_path = tmp_path / 'identity.seed'
+    seed_path.write_text(SEED.hex() + '\n')
+    seed_path.chmod(0o644)
+
+    with pytest.raises(PermissionError, match='0600'):
+        read_seed(seed_path)
+
+
+def test_read_seed_accepts_private_regular_file(tmp_path):
+    seed_path = tmp_path / 'identity.seed'
+    seed_path.write_text(SEED.hex() + '\n')
+    seed_path.chmod(0o600)
+
+    assert did_from_seed(read_seed(seed_path)) == (
+        'did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG'
+    )
+
+
 def test_did_note_urls_use_sharded_write_and_legacy_read_fallback():
     urls = did_note_urls(did_from_seed(SEED), 'mailbox:mb-agent')
     assert urls['fingerprint'] == '74cb01f67b39f88c'
@@ -84,6 +115,7 @@ def test_did_note_cli_never_prints_seed(tmp_path, capsys):
 
     seed_file = tmp_path / 'identity.seed'
     seed_file.write_text(SEED.hex() + '\n')
+    seed_file.chmod(0o600)
     main(['did-note-url', '--seed-file', str(seed_file)])
     output = capsys.readouterr().out
     assert SEED.hex() not in output
@@ -118,6 +150,7 @@ def test_cli_never_prints_seed(tmp_path, capsys):
     from technocore_did import main
     seed_file = tmp_path / 'identity.seed'
     seed_file.write_text(SEED.hex() + '\n')
+    seed_file.chmod(0o600)
     main(['did', '--seed-file', str(seed_file)])
     out = capsys.readouterr().out
     assert SEED.hex() not in out

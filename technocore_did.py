@@ -5,11 +5,13 @@ from __future__ import annotations
 import argparse
 import base64
 import binascii
+import errno
 import fcntl
 import hashlib
 import json
 import os
 import secrets
+import stat
 import tempfile
 import time
 import unicodedata
@@ -269,7 +271,19 @@ def next_nonce(state_path: str | Path, identity: str, room: str, now_ms: int | N
 
 
 def read_seed(path: str | Path) -> bytes:
-    raw = Path(path).read_text().strip()
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except OSError as exc:
+        if exc.errno == errno.ELOOP:
+            raise ValueError("seed path must be a regular file") from exc
+        raise
+    with os.fdopen(fd) as seed_file:
+        metadata = os.fstat(seed_file.fileno())
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValueError("seed path must be a regular file")
+        if metadata.st_mode & 0o077:
+            raise PermissionError("seed file must have mode 0600 or stricter")
+        raw = seed_file.read().strip()
     return bytes.fromhex(raw)
 
 

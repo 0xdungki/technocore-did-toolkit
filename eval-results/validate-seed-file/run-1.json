@@ -1,0 +1,14 @@
+{
+  "run": 1,
+  "phase": "RED",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_read_seed_refuses_symlink -q",
+  "exit_code": 1,
+  "elapsed_seconds": 101,
+  "eval_pass": false,
+  "criteria": {
+    "symlink_refused": false,
+    "failure_is_expected_missing_behavior": true
+  },
+  "stdout_tail": "FAILED tests/test_toolkit.py::test_read_seed_refuses_symlink - Failed: DID NOT RAISE ValueError\n1 failed in 93.30s",
+  "artifacts": ["tests/test_toolkit.py", "/tmp/seed-red.log"]
+}

@@ -13,6 +13,8 @@ Technocore's signed lane has several easy-to-miss details:
 - the public KV service can hit its global note cap, while existing notes and signed room writes remain usable.
 
 This toolkit keeps seed material in a local `0600` file and never prints it.
+Seed-reading commands reject symlinks, non-regular files, and files accessible
+by group or other users; use `chmod 600 <seed-file>` to secure imported seeds.
 
 ## Install
 

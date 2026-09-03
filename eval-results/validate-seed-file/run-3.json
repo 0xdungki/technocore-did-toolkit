@@ -1,0 +1,19 @@
+{
+  "run": 3,
+  "phase": "RESTORED_FINAL",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_read_seed_refuses_symlink tests/test_toolkit.py::test_read_seed_refuses_group_or_world_accessible_file tests/test_toolkit.py::test_read_seed_accepts_private_regular_file -q && .venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "elapsed_seconds": 269,
+  "eval_pass": true,
+  "criteria": {
+    "focused_tests_pass": true,
+    "focused_repeat_deterministic": true,
+    "full_suite_pass": true,
+    "symlink_refused": true,
+    "group_world_access_refused": true,
+    "valid_0600_seed_supported": true,
+    "seed_not_logged": true
+  },
+  "stdout_tail": "3 passed in 91.94s\n39 passed in 118.98s",
+  "artifacts": ["/tmp/seed-final.log", "technocore_did.py", "tests/test_toolkit.py"]
+}
