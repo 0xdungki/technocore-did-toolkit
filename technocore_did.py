@@ -107,8 +107,12 @@ def verify_signature(identity: str, room: str, nonce: str, text: str, signature:
         raise ValueError("expected an Ed25519 did:key multicodec payload")
     if not nonce.isascii() or not nonce.isdigit() or not 1 <= len(nonce) <= 19:
         raise ValueError("nonce must be 1-19 ASCII digits")
-    if len(signature) != 86:
-        raise ValueError("signature must be 86-character unpadded base64url")
+    if (
+        len(signature) != 86
+        or not signature.isascii()
+        or any(not (char.isalnum() or char in "-_") for char in signature)
+    ):
+        raise ValueError("signature must be canonical unpadded base64url")
     try:
         raw_signature = base64.b64decode(signature + "==", altchars=b"-_", validate=True)
     except (ValueError, binascii.Error) as exc:

@@ -322,6 +322,17 @@ def test_public_signature_verifier_rejects_tampering():
                          'tampered', envelope['signature'])
 
 
+def test_public_signature_verifier_rejects_standard_base64_alias():
+    _, envelope = signed_say_url(SEED, 'lobby', '1', 'message-1')
+    aliased = envelope['signature'].replace('-', '+').replace('_', '/')
+    assert aliased != envelope['signature']
+    assert len(aliased) == 86
+
+    with pytest.raises(ValueError, match='canonical unpadded base64url'):
+        verify_signature(envelope['did'], 'lobby', envelope['nonce'],
+                         envelope['text'], aliased)
+
+
 def test_public_signature_verifier_rejects_wrong_multicodec():
     _, envelope = signed_say_url(SEED, 'lobby', '303', 'hello world')
     with pytest.raises(ValueError, match='Ed25519 did:key'):

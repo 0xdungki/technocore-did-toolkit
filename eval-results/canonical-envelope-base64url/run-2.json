@@ -1,0 +1,19 @@
+{
+  "run": 2,
+  "phase": "GREEN / refactor verification",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_public_signature_verifier_rejects_standard_base64_alias -q && .venv/bin/python -m pytest -q",
+  "exit_code": 0,
+  "duration_seconds": 24.26,
+  "stdout_stderr_tail": "1 passed in 2.88s\n40 passed in 4.77s",
+  "eval_pass": true,
+  "criteria": {
+    "valid_signatures_still_verify": true,
+    "standard_base64_alias_rejected": true,
+    "full_suite_passes": true,
+    "warnings_absent": true
+  },
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_toolkit.py"
+  ]
+}

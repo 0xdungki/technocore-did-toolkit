@@ -1,0 +1,25 @@
+{
+  "run": 4,
+  "phase": "fix restored / final local verification",
+  "command": ".venv/bin/python -m pytest -q && git diff --check",
+  "exit_code": 0,
+  "duration_seconds": 13.98,
+  "stdout_stderr_tail": "........................................ [100%]\n40 passed in 5.27s",
+  "eval_pass": true,
+  "criteria": {
+    "reproducibility": true,
+    "demonstrability": true,
+    "negative_test": true,
+    "full_suite_passes": true,
+    "fail_criteria_hit": []
+  },
+  "artifacts": [
+    "technocore_did.py",
+    "tests/test_toolkit.py",
+    "eval-results/canonical-envelope-base64url/eval.md",
+    "eval-results/canonical-envelope-base64url/run-1.json",
+    "eval-results/canonical-envelope-base64url/run-2.json",
+    "eval-results/canonical-envelope-base64url/run-3.json",
+    "eval-results/canonical-envelope-base64url/run-4.json"
+  ]
+}

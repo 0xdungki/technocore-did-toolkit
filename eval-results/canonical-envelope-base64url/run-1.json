@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "phase": "RED / baseline negative test",
+  "command": ".venv/bin/python -m pytest tests/test_toolkit.py::test_public_signature_verifier_rejects_standard_base64_alias -q",
+  "exit_code": 1,
+  "duration_seconds": 14.68,
+  "stdout_stderr_tail": "FAILED tests/test_toolkit.py::test_public_signature_verifier_rejects_standard_base64_alias - Failed: DID NOT RAISE ValueError\n1 failed in 5.90s",
+  "eval_pass": false,
+  "criteria": {
+    "baseline_rejects_standard_base64_alias": false,
+    "expected_failure_observed": true
+  },
+  "artifacts": [
+    "tests/test_toolkit.py",
+    "eval-results/canonical-envelope-base64url/eval.md"
+  ]
+}
